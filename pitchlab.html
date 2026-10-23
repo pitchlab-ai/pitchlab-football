@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitchLab — футбольный AI-тренер</title>
+<style>
+:root {
+  --site-primary: #b7f36b;
+  --site-on-primary: #15220b;
+  --site-secondary: #173d2b;
+  --site-on-secondary: #f3f8ef;
+  --site-background: #0d1712;
+  --site-on-background: #f3f8ef;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  color-scheme: light dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--site-background); color: var(--site-on-background); }
+#app { min-height: 100vh; width: 100%; background-color: var(--site-background); color: var(--site-on-background); border-radius: 0; overflow: hidden; }
+a { color: inherit; text-decoration: none; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+nav { display:flex; justify-content:space-between; align-items:center; padding:22px 0; gap:20px; }
+.logo { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:-.04em; font-size:21px; }
+.logo-mark { width:34px; height:34px; border-radius:11px; background:var(--site-primary); color:var(--site-on-primary); display:grid; place-items:center; font-size:18px; }
+.nav-links { display:flex; align-items:center; gap:25px; color:#bdc9bf; font-size:14px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:999px; padding:13px 20px; font-weight:800; transition:transform .15s, opacity .15s; }
+.btn:hover { transform:translateY(-2px); }
+.btn-primary { background:var(--site-primary); color:var(--site-on-primary); }
+.btn-ghost { border:1px solid #42564a; color:#f3f8ef; background:transparent; }
+.hero { padding:70px 0 76px; display:grid; grid-template-columns:1.08fr .92fr; gap:55px; align-items:center; }
+.eyebrow { display:inline-flex; align-items:center; gap:8px; border:1px solid #34513c; background:#17281d; color:#c6f79a; padding:8px 12px; border-radius:999px; font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+h1,h2,h3,p { margin-top:0; }
+h1 { font-family:var(--site-font-heading); font-size:clamp(42px,6vw,72px); line-height:.99; letter-spacing:-.065em; margin:22px 0; max-width:690px; }
+.accent { color:var(--site-primary); }
+.lead { color:#bdc9bf; font-size:18px; line-height:1.7; max-width:590px; }
+.hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+.micro { margin-top:18px; color:#84978a; font-size:12px; }
+.pitch-card { min-height:390px; border:1px solid #304839; border-radius:28px; padding:24px; background:radial-gradient(circle at 80% 10%, #355a39 0, transparent 38%), linear-gradient(145deg,#1a3323,#101c15 65%); position:relative; overflow:hidden; }
+.pitch-lines { position:absolute; inset:34px; border:1px solid rgba(215,255,207,.22); border-radius:18px; opacity:var(--site-decoration-opacity); }
+.pitch-lines:before { content:""; position:absolute; left:0; right:0; top:50%; border-top:1px solid rgba(215,255,207,.22); }
+.pitch-lines:after { content:""; position:absolute; width:100px; height:100px; border:1px solid rgba(215,255,207,.22); border-radius:50%; top:calc(50% - 50px); left:calc(50% - 50px); }
+.ball { position:absolute; font-size:88px; right:26%; top:28%; filter:drop-shadow(0 20px 20px #0007); transform:rotate(-18deg); }
+.float-panel { position:absolute; background:#f5f8f1; color:#17251a; border-radius:18px; padding:15px 17px; box-shadow:0 18px 45px #0005; }
+.float-panel strong { display:block; font-size:13px; }
+.float-panel small { color:#5c6d5f; font-size:11px; }
+.panel-one { left:16px; bottom:24px; }
+.panel-two { right:18px; top:24px; }
+.mini-bar { height:5px; background:#dbe7d7; border-radius:99px; margin-top:10px; width:130px; overflow:hidden; }
+.mini-bar span { display:block; height:100%; width:72%; background:#6eb94a; border-radius:99px; }
+.stats { border-top:1px solid #26382c; border-bottom:1px solid #26382c; display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:25px 0; }
+.stat strong { display:block; font-size:25px; letter-spacing:-.04em; }
+.stat span { color:#9dad9f; font-size:13px; }
+section { padding:78px 0; }
+.section-top { display:flex; align-items:end; justify-content:space-between; gap:25px; margin-bottom:30px; }
+.kicker { color:var(--site-primary); text-transform:uppercase; font-size:12px; font-weight:900; letter-spacing:.12em; }
+h2 { font-size:clamp(30px,4vw,46px); line-height:1.05; letter-spacing:-.055em; margin:12px 0 0; }
+.section-copy { color:#aab8ad; max-width:380px; line-height:1.65; margin-bottom:0; }
+.features { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.feature { border:1px solid #2b4031; border-radius:22px; padding:25px; background:linear-gradient(145deg,#17271c,#111c15); }
+.feature-icon { width:44px; height:44px; display:grid; place-items:center; background:#263f2b; border-radius:14px; font-size:22px; margin-bottom:24px; }
+.feature h3 { font-size:19px; margin-bottom:9px; }
+.feature p { color:#aab8ad; line-height:1.65; font-size:14px; margin-bottom:0; }
+.planner { background:#14241a; border-top:1px solid #2b4031; border-bottom:1px solid #2b4031; }
+.planner-grid { display:grid; grid-template-columns:.85fr 1.15fr; gap:38px; align-items:start; }
+.form-card,.plan-card { background:#0e1912; border:1px solid #2d4433; border-radius:24px; padding:24px; }
+label { display:block; color:#c2d0c4; font-size:13px; font-weight:700; margin-bottom:8px; }
+.field { margin-bottom:17px; }
+select,input { width:100%; border:1px solid #3b5141; border-radius:12px; padding:13px 14px; background:#17251b; color:#f3f8ef; outline:none; }
+select:focus,input:focus { border-color:var(--site-primary); }
+.form-note { font-size:12px; line-height:1.55; color:#839588; margin:14px 0 0; }
+.plan-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; }
+.plan-head h3 { margin:0; font-size:21px; }
+.pill { font-size:11px; background:#253e2b; color:#c6f79a; padding:7px 10px; border-radius:999px; font-weight:800; }
+.day { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid #26372b; }
+.day:last-child { border-bottom:0; }
+.day-num { width:36px; height:36px; border-radius:11px; background:#233a28; display:grid; place-items:center; color:#d5f7c0; font-weight:900; font-size:12px; }
+.day strong { display:block; font-size:14px; }
+.day small { color:#91a194; font-size:12px; display:block; margin-top:4px; }
+.duration { color:#b5c3b7; font-size:12px; white-space:nowrap; }
+.pricing { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.price-card { padding:26px; border-radius:22px; border:1px solid #2d4433; background:#142219; display:flex; flex-direction:column; align-items:flex-start; }
+.price-card.popular { border-color:var(--site-primary); background:linear-gradient(160deg,#213b25,#142219 75%); }
+.price-card h3 { margin-bottom:8px; }
+.price { font-size:36px; font-weight:900; letter-spacing:-.05em; margin:10px 0 3px; }
+.price small { font-size:13px; color:#9ead9f; font-weight:500; letter-spacing:0; }
+.price-card p { color:#aab8ad; font-size:14px; line-height:1.6; min-height:45px; }
+.price-card ul { list-style:none; padding:0; margin:12px 0 24px; color:#d3ddd4; font-size:13px; line-height:2; }
+.price-card li:before { content:"✓"; color:var(--site-primary); margin-right:8px; font-weight:900; }
+.price-card .btn { margin-top:auto; width:100%; }
+.faq { max-width:780px; margin:0 auto; }
+details { border-bottom:1px solid #2b4031; padding:20px 0; }
+summary { cursor:pointer; font-weight:800; }
+details p { color:#aab8ad; line-height:1.65; margin:13px 0 0; }
+footer { padding:28px 0; border-top:1px solid #26382c; color:#8ea092; font-size:12px; }
+footer .wrap { display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+.notice { border:1px solid #5c5030; background:#282314; color:#e9d99b; border-radius:12px; padding:12px 14px; font-size:12px; line-height:1.5; margin-top:18px; }
+@media (max-width:760px) { .nav-links { display:none; } .hero { grid-template-columns:1fr; padding:45px 0 55px; gap:30px; } .pitch-card { min-height:330px; } .stats { grid-template-columns:1fr; gap:16px; } .stat { display:flex; align-items:baseline; gap:12px; } .section-top { display:block; } .section-copy { margin-top:15px; } .features,.planner-grid,.pricing { grid-template-columns:1fr; } section { padding:56px 0; } .wrap { width:min(100% - 30px,1120px); } .float-panel { transform:scale(.9); transform-origin:bottom left; } .panel-two { transform-origin:top right; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="wrap">
+    <nav>
+      <a class="logo" href="#top"><span class="logo-mark">⚽</span><span>PITCHLAB</span></a>
+      <div class="nav-links"><a href="#how">Как работает</a><a href="#planner">План на неделю</a><a href="#pricing">Тарифы</a></div>
+      <a class="btn btn-primary" href="#planner">Попробовать</a>
+    </nav>
+  </header>
+  <main>
+    <div class="wrap hero" id="top">
+      <div>
+        <span class="eyebrow">✦ Твой персональный футбольный помощник</span>
+        <h1>Тренируйся умнее.<br><span class="accent">Играй сильнее.</span></h1>
+        <p class="lead">Персональный план футбольных тренировок на неделю — с упражнениями, целями и понятным расписанием. Создавай полезную привычку шаг за шагом.</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="#planner">Составить план <span style="margin-left:9px">↗</span></a><a class="btn btn-ghost" href="#how">Как это работает</a></div>
+        <p class="micro">Первая версия · Демонстрационный сайт · AI подключим следующим этапом</p>
+      </div>
+      <div class="pitch-card" aria-label="Иллюстрация футбольного поля">
+        <div class="pitch-lines"></div><div class="ball">⚽</div>
+        <div class="float-panel panel-two"><strong>План на 7 дней</strong><small>Техника · Контроль · Игра</small><div class="mini-bar"><span></span></div></div>
+        <div class="float-panel panel-one"><strong>Твоя следующая цель</strong><small>Контроль мяча под давлением</small></div>
+      </div>
+    </div>
+    <div class="wrap stats"><div class="stat"><strong>7 дней</strong><span>структурированный план</span></div><div class="stat"><strong>Твой уровень</strong><span>упражнения под твои цели</span></div><div class="stat"><strong>Шаг за шагом</strong><span>отмечай выполненные занятия</span></div></div>
+    <section id="how"><div class="wrap"><div class="section-top"><div><div class="kicker">Как это работает</div><h2>Тренировки с понятной целью</h2></div><p class="section-copy">Не случайный набор упражнений, а план, который можно встроить в футбольную неделю.</p></div><div class="features">
+      <article class="feature"><div class="feature-icon">🎯</div><h3>Под твои задачи</h3><p>Укажи позицию, уровень и то, над чем хочешь работать — например, первый контакт, передачи или ведение мяча.</p></article>
+      <article class="feature"><div class="feature-icon">📅</div><h3>План на неделю</h3><p>Распредели занятия по дням, чтобы сочетать работу с мячом, командные тренировки и восстановление.</p></article>
+      <article class="feature"><div class="feature-icon">📈</div><h3>Следи за прогрессом</h3><p>Отмечай тренировки и оценивай сложность. В будущей версии AI будет учитывать эту обратную связь.</p></article>
+    </div></div></section>
+    <section class="planner" id="planner"><div class="wrap planner-grid"><div><div class="kicker">Попробуй демо</div><h2>Собери пример своего плана</h2><p class="section-copy" style="margin-top:16px">Заполни анкету — сайт покажет демонстрационный недельный план. Пока это пример, не настоящий AI и не медицинская рекомендация.</p>
+      <form class="form-card" id="profile-form" style="margin-top:25px">
+        <div class="field"><label for="position">Твоя позиция</label><select id="position"><option>Нападающий</option><option>Полузащитник</option><option>Защитник</option><option>Вратарь</option><option>Универсальный игрок</option></select></div>
+        <div class="field"><label for="level">Уровень</label><select id="level"><option>Начинающий</option><option selected>Любитель / средний</option><option>Продвинутый</option></select></div>
+        <div class="field"><label for="goal">Главная цель</label><select id="goal"><option>Контроль мяча и ведение</option><option>Точность передач</option><option>Завершение атак</option><option>Скорость и координация</option><option>Игровое мышление</option></select></div>
+        <div class="field"><label for="days">Сколько дней в неделю доступно?</label><select id="days"><option value="3">3 дня</option><option value="4" selected>4 дня</option><option value="5">5 дней</option></select></div>
+        <button class="btn btn-primary" type="submit" style="width:100%">Сгенерировать демо-план ↗</button>
+        <p class="form-note">Не указывай здесь личные данные. Перед настоящими тренировками учитывай возраст, командный график, самочувствие и рекомендации тренера.</p>
+      </form>
+    </div><div class="plan-card" aria-live="polite"><div class="plan-head"><h3 id="plan-title">Твой примерный план</h3><span class="pill">ДЕМО</span></div><p id="plan-subtitle" style="color:#9eafa1;font-size:13px;line-height:1.6">Выбери параметры слева и нажми «Сгенерировать демо-план».</p><div id="plan-days">
+      <div class="day"><div class="day-num">ПН</div><div><strong>Техника с мячом</strong><small>Разминка, касания, контроль</small></div><span class="duration">25 мин</span></div>
+      <div class="day"><div class="day-num">ВТ</div><div><strong>Восстановление</strong><small>Лёгкая подвижность и отдых</small></div><span class="duration">15 мин</span></div>
+      <div class="day"><div class="day-num">СР</div><div><strong>Передачи и первый контакт</strong><small>Работа у стены или с партнёром</small></div><span class="duration">25 мин</span></div>
+      <div class="day"><div class="day-num">ЧТ</div><div><strong>Отдых</strong><small>Восстановление между занятиями</small></div><span class="duration">—</span></div>
+      <div class="day"><div class="day-num">ПТ</div><div><strong>Координация с мячом</strong><small>Контроль движений в комфортном темпе</small></div><span class="duration">20 мин</span></div>
+    </div><div class="notice">Это демонстрация интерфейса. Персональный AI, сохранение профиля и реальные аккаунты ещё не подключены.</div></div></div></section>
+    <section id="pricing"><div class="wrap"><div class="section-top"><div><div class="kicker">Тарифы</div><h2>Сначала попробуй бесплатно</h2></div><p class="section-copy">Тарифы пока демонстрационные. Подключим оплату в рублях, когда выберем платёжный сервис и оформим аккаунт продавца.</p></div><div class="pricing">
+      <article class="price-card"><h3>Старт</h3><div class="price">0 ₽</div><p>Чтобы познакомиться с форматом тренировок.</p><ul><li>Пример плана на неделю</li><li>Базовые упражнения</li><li>Без AI-персонализации</li></ul><a class="btn btn-ghost" href="#planner">Попробовать</a></article>
+      <article class="price-card popular"><span class="pill">В ПЛАНАХ</span><h3 style="margin-top:15px">Тренер</h3><div class="price">— <small>/ месяц</small></div><p>Персональные планы и сопровождение AI.</p><ul><li>План под позицию и цель</li><li>Корректировка по обратной связи</li><li>История занятий</li></ul><button class="btn btn-primary" type="button" onclick="alert('Оплата пока не подключена. Это макет будущего тарифа.')">Скоро</button></article>
+      <article class="price-card"><h3>Программа</h3><div class="price">— <small>/ 4 недели</small></div><p>Отдельный тренировочный блок под одну цель.</p><ul><li>Программа на 4 недели</li><li>План по дням</li><li>Отметки выполнения</li></ul><button class="btn btn-ghost" type="button" onclick="alert('Оплата пока не подключена. Это макет будущего тарифа.')">Скоро</button></article>
+    </div></div></section>
+    <section><div class="wrap faq"><div class="kicker">Вопросы</div><h2 style="margin-bottom:22px">Что дальше?</h2><details><summary>Это уже опубликованный сайт?</summary><p>Пока это интерактивный прототип для просмотра внутри ChatGPT. Он ещё не опубликован в интернете и не имеет публичного адреса.</p></details><details><summary>AI уже подключён?</summary><p>Нет. Сейчас форма генерирует демонстрационный план по заранее заданным правилам. Следующим этапом подключим AI через сервер, чтобы секретный API-ключ не попадал в браузер.</p></details><details><summary>Можно ли принимать рубли и выводить деньги?</summary><p>Да, это можно организовать через подходящий российский платёжный сервис после проверки его требований к продавцу и оформления нужного статуса. До этого кнопки оплаты не собирают деньги.</p></details></div></section>
+  </main>
+  <footer><div class="wrap"><span class="logo"><span class="logo-mark">⚽</span><span>PITCHLAB</span></span><span>Демо-концепция футбольного AI-тренера · 2026</span></div></footer>
+</div>
+<script>
+const form = document.getElementById('profile-form');
+const positionEl = document.getElementById('position');
+const levelEl = document.getElementById('level');
+const goalEl = document.getElementById('goal');
+const daysEl = document.getElementById('days');
+const daysHost = document.getElementById('plan-days');
+const title = document.getElementById('plan-title');
+const subtitle = document.getElementById('plan-subtitle');
+const weekday = ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'];
+form.addEventListener('submit', function(event) {
+  event.preventDefault();
+  const position = positionEl.value;
+  const level = levelEl.value;
+  const goal = goalEl.value;
+  const days = Number(daysEl.value);
+  const exerciseMap = {
+    'Контроль мяча и ведение': ['Касания и ведение','Изменение направления','Контроль мяча в движении','Лёгкая техника с мячом','Повторение любимых упражнений'],
+    'Точность передач': ['Короткие передачи','Первый контакт','Передачи в одно-два касания','Работа у стены или с партнёром','Приём и передача в движении'],
+    'Завершение атак': ['Техника удара без нагрузки','Удары по неподвижному мячу','Завершение после передачи','Техника удара слабой ногой','Спокойное повторение техники'],
+    'Скорость и координация': ['Координация и баланс','Техника ускорения с тренером','Работа ног в комфортном темпе','Подвижность и контроль','Лёгкая координация с мячом'],
+    'Игровое мышление': ['Сканирование поля','Приём мяча с обзором','Выбор направления передачи','Разбор игровых эпизодов','Решения в небольших игровых ситуациях']
+  };
+  const exerciseList = exerciseMap[goal] || exerciseMap['Контроль мяча и ведение'];
+  const activeDays = Math.min(days, 5);
+  const restLabels = ['Восстановление','Отдых и лёгкая подвижность'];
+  let html = '';
+  for (let i=0; i<7; i++) {
+    const isTraining = [0,2,4,5,6].includes(i) && (i < activeDays + 1);
+    const name = isTraining ? exerciseList[(i + (position === 'Вратарь' ? 2 : 0)) % exerciseList.length] : restLabels[i % 2];
+    const detail = isTraining ? `${position} · ${level.toLowerCase()} · разогрев и техника` : 'Восстановление между занятиями';
+    const duration = isTraining ? (level === 'Начинающий' ? '15–20 мин' : level === 'Продвинутый' ? '25–35 мин' : '20–25 мин') : '—';
+    html += `<div class="day"><div class="day-num">${weekday[i]}</div><div><strong>${name}</strong><small>${detail}</small></div><span class="duration">${duration}</span></div>`;
+  }
+  daysHost.innerHTML = html;
+  title.textContent = 'План: ' + goal.toLowerCase();
+  subtitle.textContent = `Позиция: ${position} · Уровень: ${level}. Это демонстрационная раскладка, а не персональная рекомендация AI.`;
+});
+</script>
+</body>
+</html>
